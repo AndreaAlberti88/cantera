@@ -378,6 +378,12 @@ public:
         throw NotImplementedError("Transport::translationalThermalConductivity");
     }
 
+
+    virtual doublereal internalThermalConductivity()  {
+        throw NotImplementedError("Transport::internalThermalConductivity");
+    }
+
+
     virtual doublereal ElectronTranslationalThermalConductivity() {
         throw NotImplementedError("Transport::ElectronTranslationalThermalConductivity");
     }

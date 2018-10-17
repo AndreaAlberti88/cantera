@@ -46,8 +46,8 @@ typedef  int          ftnlen;       // Fortran hidden string length type
 #define FTN_TRAILING_UNDERSCORE 1
 
 
-#define HAS_SUNDIALS 1
-#define SUNDIALS_VERSION 25
+/* #undef HAS_SUNDIALS */
+#define SUNDIALS_VERSION 0
 
 //-------- LAPACK / BLAS ---------
 
@@ -56,7 +56,7 @@ typedef  int          ftnlen;       // Fortran hidden string length type
 #define LAPACK_FTN_TRAILING_UNDERSCORE 1
 
 //-------- BOOST --------
-/* #undef USE_BOOST_MATH */
+#define USE_BOOST_MATH 1
 
 //--------- operating system --------------------------------------
 
@@ -73,7 +73,7 @@ typedef  int          ftnlen;       // Fortran hidden string length type
 
 // Name for 'isnan' varies for different compilers / standard libraries
 #define USE_STD_ISNAN 1
-#define USE_GLOBAL_ISNAN 1
+/* #undef USE_GLOBAL_ISNAN */
 /* #undef USE_UNDERSCORE_ISNAN */
 
 // This define is needed to account for the variability for how

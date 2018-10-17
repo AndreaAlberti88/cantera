@@ -108,6 +108,7 @@ public:
     virtual doublereal translationalThermalConductivity();
     virtual doublereal ElectronTranslationalThermalConductivity();
 
+    virtual doublereal internalThermalConductivity();
 
     //! Get the Electrical mobilities (m^2/V/s).
     /*!

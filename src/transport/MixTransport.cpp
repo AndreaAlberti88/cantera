@@ -525,6 +525,35 @@ doublereal MixTransport::translationalThermalConductivity()
 
 
 
+
+
+
+
+// TO BE DEBUGGED
+doublereal MixTransport::internalThermalConductivity()
+{
+
+        update_T();
+        update_C();
+
+	doublereal int_th_cond = 0.0;
+        double rp = 1/(Boltzmann*m_thermo->temperature());
+        const int a = m_nsp*(m_nsp+1)/2;
+        const int b = m_nsp;
+        double GIJ[a];
+        double BIJ[a];
+
+        double mIJ = 0;
+
+	return int_th_cond;
+
+}
+
+
+
+
+
+
 void MixTransport::getThermalDiffCoeffs(doublereal* const dt)
 {
     for (size_t k = 0; k < m_nsp; k++) {
