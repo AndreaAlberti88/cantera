@@ -143,11 +143,21 @@ doublereal MixTransport::thermalConductivity()
     update_T();
     update_C();
 
-    doublereal trThermCond = 0.0;
-    // call the new function for the updated translational thermal conductivity
-    trThermCond = translationalThermalConductivity();
+    if (!m_bindiff_ok) {
+      updateDiff_T();
+    }
 
-    return trThermCond;
+    doublereal thermCond = 0.0;
+    doublereal trThermCond_electrons = 0.0;
+    doublereal trThermCond_heavy     = 0.0;
+    doublereal intThermCond          = 0.0;
+
+    trThermCond_electrons = electronThermalConductivity();
+    trThermCond_heavy = translationalThermalConductivity();
+    intThermCond = internalThermalConductivity();
+    thermCond = trThermCond_electrons + trThermCond_heavy + intThermCond;
+
+    return thermCond;
 
 }
 
@@ -172,6 +182,11 @@ doublereal MixTransport::ElectronTranslationalThermalConductivity()
 
 	update_T();
    	update_C();
+
+	if (!m_bindiff_ok) {
+          updateDiff_T();
+        }
+
 
         MMCollisionIntCharged integrals;
         double t = m_thermo->temperature();
@@ -343,6 +358,10 @@ doublereal MixTransport::translationalThermalConductivity()
 
 	update_T();
     	update_C();
+
+        if (!m_bindiff_ok) {
+          updateDiff_T();
+        }
 
         double rp = 1/(Boltzmann*m_thermo->temperature());
         const int a = m_nsp*(m_nsp+1)/2;
@@ -523,29 +542,97 @@ doublereal MixTransport::translationalThermalConductivity()
 }
 
 
-
-
-
-
-
-
-// TO BE DEBUGGED
 doublereal MixTransport::internalThermalConductivity()
 {
 
-        update_T();
-        update_C();
+    update_T();
+    update_C();
 
-	doublereal int_th_cond = 0.0;
-        double rp = 1/(Boltzmann*m_thermo->temperature());
-        const int a = m_nsp*(m_nsp+1)/2;
-        const int b = m_nsp;
-        double GIJ[a];
-        double BIJ[a];
+    // update the binary diffusion coefficients if necessary
+    if (!m_bindiff_ok) {
+        updateDiff_T();
+    }
 
-        double mIJ = 0;
 
-	return int_th_cond;
+    const vector_fp& mw = m_thermo->molecularWeights();
+    doublereal lambda_int = 0.0;
+    size_t n_neutral;
+    size_t pos_neut;
+    size_t ip, jp, ij, cp;
+    size_t nb_h = m_nsp -1;
+    doublereal mol_fract[m_nsp];
+    doublereal sum_Xc_ov_Dccp[nb_h];
+    doublereal mmc_Xc_ov_sumXD;
+    doublereal cv_rot, cv_int;
+    doublereal nd = 0.0;
+    doublereal atomicW[m_nsp];
+    m_thermo->getMolecularWeights(atomicW);         // kg/kmol
+
+    DenseMatrix binIJ(m_nsp,m_nsp);
+
+    double rp = 1/(Boltzmann*m_thermo->temperature());
+
+    TransportCharged trChCh;
+    nd = trChCh.getNumberDensity( m_thermo->temperature(), m_thermo->elec_temperature(), 
+                                  m_molefracs[m_thermo->speciesIndex("E")], m_thermo->pressure());
+
+    doublereal cp_R;
+    vector_fp cp_R_all(m_thermo->nSpecies());
+    m_thermo->getCp_R_ref(&cp_R_all[0]);
+
+
+    for (size_t i = 0; i < m_nsp; i++) {
+                mol_fract[i] = m_molefracs[i];
+    }
+
+
+    for (size_t i = 0; i < m_nsp; i++) {
+      binIJ(i,i) = 1.0;
+      for (size_t j = i+1; j < m_nsp; j++) {
+        binIJ(i,j) = rp*m_bdiff(i,j)/nd;
+        binIJ(j,i) = binIJ(i,j);
+       }
+    }
+
+    //Common factors
+    for (size_t i = 0; i < nb_h; i++) {
+       ip = i;
+       sum_Xc_ov_Dccp[ip] = 0.0;
+
+       for (size_t j = 0; j < nb_h; j++) {
+          jp = j;
+
+          sum_Xc_ov_Dccp[ip] = sum_Xc_ov_Dccp[ip] + mol_fract[jp]/(binIJ(jp,ip));
+
+       }
+    }
+
+
+    //Loop over heavy-particle components
+    lambda_int = 0.0;
+       for (size_t c = 0; c < nb_h; c++) {
+
+       cp = c;
+
+      
+   
+       // from transport factory
+       cp_R   = cp_R_all[cp];
+       cv_rot = m_crot[cp];
+       if ( cv_rot > 0.0 ) {
+       cv_int = cp_R - 2.5 - cv_rot;}
+       else{
+       cv_int = 0.0; }
+   
+
+       mmc_Xc_ov_sumXD = (atomicW[cp]/1000.0)*mol_fract[cp]/sum_Xc_ov_Dccp[c];
+       lambda_int      = lambda_int + mmc_Xc_ov_sumXD * (cv_int+cv_rot)*GasConstant/mw[cp];;
+       
+       }
+
+    lambda_int = lambda_int*nd/(6.0221367e23);
+
+    return lambda_int;
 
 }
 
@@ -1714,8 +1801,8 @@ void MixTransport::updateCond_T()
             {
 
 		m_cond[k] = m_temp * m_temp * dot5(m_polytempvec, m_condcoeffs[k]);
-
-        	m_omega12[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega12Coeff[k]) );
+        	
+		m_omega12[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega12Coeff[k]) );
         	m_omega13[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega13Coeff[k]) );
         	m_omega14[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega14Coeff[k]) );
         	m_omega15[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega15Coeff[k]) );
@@ -1726,7 +1813,7 @@ void MixTransport::updateCond_T()
 
 	else
 	    {
-            	m_cond[k] = m_sqrt_t * dot5(m_polytempvec, m_condcoeffs[k]);
+            	m_cond[k] = dot5(m_polytempvec, m_condcoeffs[k]); //m_sqrt_t * dot5(m_polytempvec, m_condcoeffs[k]);
 
         	m_omega12[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega12Coeff[k]) );
         	m_omega13[k] = m_temp * m_temp * exp( dot5(m_polytempvec,m_omega13Coeff[k]) );

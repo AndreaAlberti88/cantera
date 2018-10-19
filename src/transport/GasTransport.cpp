@@ -431,6 +431,9 @@ double GasTransport::viscosityGY()
     update_T();
     update_C();
 
+    if (!m_bindiff_ok) {
+      updateDiff_T();
+    }
 
 	double rp = 1/(Boltzmann*m_thermo->temperature());
 	const int a = m_nsp*(m_nsp+1)/2;

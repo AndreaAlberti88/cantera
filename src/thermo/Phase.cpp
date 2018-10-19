@@ -495,6 +495,7 @@ void Phase::setState_TRX(doublereal t, doublereal dens, const doublereal* x)
     setMoleFractions(x);
     setTemperature(t);
     setDensity(dens);
+        setElectronTemperature(t);
 }
 
 void Phase::setState_TNX(doublereal t, doublereal n, const doublereal* x)
@@ -502,6 +503,7 @@ void Phase::setState_TNX(doublereal t, doublereal n, const doublereal* x)
     setMoleFractions(x);
     setTemperature(t);
     setMolarDensity(n);
+        setElectronTemperature(t);
 }
 
 void Phase::setState_TRX(doublereal t, doublereal dens, const compositionMap& x)
@@ -509,6 +511,7 @@ void Phase::setState_TRX(doublereal t, doublereal dens, const compositionMap& x)
     setMoleFractionsByName(x);
     setTemperature(t);
     setDensity(dens);
+       setElectronTemperature(t);
 }
 
 void Phase::setState_TRY(doublereal t, doublereal dens, const doublereal* y)
@@ -516,6 +519,7 @@ void Phase::setState_TRY(doublereal t, doublereal dens, const doublereal* y)
     setMassFractions(y);
     setTemperature(t);
     setDensity(dens);
+       setElectronTemperature(t);
 }
 
 void Phase::setState_TRY(doublereal t, doublereal dens, const compositionMap& y)
@@ -523,24 +527,28 @@ void Phase::setState_TRY(doublereal t, doublereal dens, const compositionMap& y)
     setMassFractionsByName(y);
     setTemperature(t);
     setDensity(dens);
+       setElectronTemperature(t);
 }
 
 void Phase::setState_TR(doublereal t, doublereal rho)
 {
     setTemperature(t);
     setDensity(rho);
+        setElectronTemperature(t);
 }
 
 void Phase::setState_TX(doublereal t, doublereal* x)
 {
     setTemperature(t);
     setMoleFractions(x);
+       setElectronTemperature(t);
 }
 
 void Phase::setState_TY(doublereal t, doublereal* y)
 {
     setTemperature(t);
     setMassFractions(y);
+       setElectronTemperature(t);
 }
 
 void Phase::setState_RX(doublereal rho, doublereal* x)

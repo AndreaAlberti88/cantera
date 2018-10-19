@@ -203,6 +203,7 @@ void ThermoPhase::setState_TeTP(doublereal te, doublereal t, doublereal p)
 
 void ThermoPhase::setState_TP(doublereal t, doublereal p)
 {
+	setElectronTemperature(t);
     setTemperature(t);
     setPressure(p);
 }
@@ -232,6 +233,7 @@ void ThermoPhase::setState_UV(doublereal u, doublereal v, doublereal dTtol)
 
 void ThermoPhase::setState_conditional_TP(doublereal t, doublereal p, bool set_p)
 {
+	setElectronTemperature(t);
     setTemperature(t);
     if (set_p) {
         setPressure(p);
@@ -763,6 +765,7 @@ void ThermoPhase::setStateFromXML(const XML_Node& state)
     if (state.hasChild("temperature")) {
         double t = getFloat(state, "temperature", "temperature");
         setTemperature(t);
+	   setElectronTemperature(t);
     }
     if (state.hasChild("pressure")) {
         double p = getFloat(state, "pressure", "pressure");

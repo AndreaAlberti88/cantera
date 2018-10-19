@@ -1145,7 +1145,7 @@ void TransportFactory::fitProperties(GasTransportParams& tr,
     doublereal tstar;
     int ndeg = 0;
     // number of points to use in generating fit data
-    const size_t np = 50;
+    const size_t np = 500;
 
 
     int mode = tr.mode_;
@@ -1301,6 +1301,10 @@ for (size_t K = 0; K < tr.thermo->m_spNeutIndex.size(); K++)  {
 
             f_rot = f_int * (1.0 + c1);
             f_trans = 2.5 * (1.0 - c1 * cv_rot/1.5);
+
+	    // added for zero-ing the translational contribution
+	    // that is added in MixTransport
+	    f_trans = 0.0;
 
             cond = (visc/tr.mw[k_self])*GasConstant*(f_trans * 1.5
                                                 + f_rot * cv_rot + f_int * cv_int);
@@ -1634,8 +1638,6 @@ for (size_t K = 0; K < tr.thermo->m_spNegIndex.size(); K++)  {
         }
 
 }
-
-
 
     if (DEBUG_MODE_ENABLED && m_verbose) {
         writelogf("Maximum viscosity absolute error:  %12.6g\n", mxerr);
